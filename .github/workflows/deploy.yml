@@ -1,28 +1,25 @@
 name: Deploy to Server
-
-on:
-  push:
-    branches: [main]
-
+on: [push]
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Add SSH Key
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
-
-      - name: Deploy to Server
+      - uses: actions/checkout@v4
+        
+      - name: Setup SSH
         run: |
-          ssh -o StrictHostKeyChecking=no root@138.197.174.176 "
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan 138.197.174.176 >> ~/.ssh/known_hosts
+          
+      - name: Deploy
+        run: |
+          ssh -i ~/.ssh/deploy_key root@138.197.174.176 "
             cd /root/finalback
             git pull origin main
             yarn install --frozen-lockfile
             yarn build
             pm2 restart finalback
-            # Add restart commands here if needed (e.g., pm2 restart)
+            # Add restart commands here
           "
