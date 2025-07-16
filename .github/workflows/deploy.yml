@@ -10,8 +10,11 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key
+          # Fix line endings and permissions
+          sed -i 's/\r$//' ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan 138.197.174.176 >> ~/.ssh/known_hosts
+
           
       - name: Deploy
         run: |
